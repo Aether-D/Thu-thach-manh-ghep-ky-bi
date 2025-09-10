@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Sliding Puzzle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        #puzzle-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 0; 
+            border: 3px solid #334155;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            background-color: #1e293b;
+        }
+
+        .puzzle-piece {
+            background-size: 400% 400%;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+        
+        .puzzle-piece:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
+
+        .empty-piece {
+            background: none;
+            cursor: default;
+            box-shadow: none;
+        }
+        
+        .empty-piece:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0;
+            animation: confetti-fall 5s linear infinite;
+        }
+        .confetti.yellow { background-color: #ff0; }
+        .confetti.blue { background-color: #00f; }
+        .confetti.green { background-color: #0f0; }
+        .confetti.pink { background-color: #f0f; }
+        
+        /* For suggestion dropdown */
+        .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen">
+
+    <!-- Giao diện 1: Chào mừng -->
+    <div id="welcome-screen" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center transform scale-95 transition-transform duration-300">
+            <h2 class="text-3xl font-bold text-slate-800 mb-4">🧩 Thử thách mảnh ghép kỳ bí</h2>
+            <img src="https://i.postimg.cc/RVMj8C0d/Background-sliding-puzzle.png" alt="Thử thách mảnh ghép" class="mx-auto rounded-lg mb-6 w-full max-w-sm">
+            <button id="next-to-instructions" class="w-full bg-[#F5C45E] text-slate-800 font-bold py-3 px-4 rounded-lg hover:bg-[#E4B351] focus:outline-none focus:ring-4 focus:ring-yellow-400 transition-all duration-300 transform hover:scale-105">Kế tiếp</button>
+        </div>
+    </div>
+
+    <!-- Giao diện 2: Hướng dẫn -->
+    <div id="instructions-screen" class="hidden opacity-0 fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md text-center transform scale-95 transition-transform duration-300">
+            <h2 class="text-3xl font-bold text-slate-800 mb-4">Hướng dẫn trò chơi</h2>
+            <p class="text-slate-600 mb-4 text-lg text-left">Hãy chạm vào các mảnh ghép gần ô trống để di chuyển nó về phía ô trống. Di chuyển các mảnh ghép sao cho hoàn thiện bức ảnh như hình mẫu.</p>
+            <img src="https://i.postimg.cc/25bpwH5f/H-ng-d-n.png" alt="Hướng dẫn" class="mx-auto rounded-lg mb-6 w-full">
+            <button id="next-to-user-info" class="w-full bg-[#F5C45E] text-slate-800 font-bold py-3 px-4 rounded-lg hover:bg-[#E4B351] focus:outline-none focus:ring-4 focus:ring-yellow-400 transition-all duration-300 transform hover:scale-105">Kế tiếp</button>
+        </div>
+    </div>
+
+    <!-- Giao diện 3: Modal Nhập Thông Tin -->
+    <div id="user-info-modal" class="hidden opacity-0 fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md transform scale-95 transition-transform duration-300" id="user-info-box">
+            <h2 class="text-2xl font-bold text-center text-slate-800 mb-6">Thông Tin Người Chơi</h2>
+            <form id="user-info-form">
+                <div class="mb-4 relative">
+                    <label for="department" class="block text-slate-700 font-medium mb-2">Bộ phận</label>
+                    <input type="text" id="department" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required autocomplete="off">
+                    <div id="department-suggestions" class="absolute w-full bg-white border border-slate-300 rounded-b-lg mt-0.5 z-20 max-h-48 overflow-y-auto hidden">
+                        <!-- Suggestions will be populated by JS -->
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <label for="fullName" class="block text-slate-700 font-medium mb-2">Họ và Tên</label>
+                    <input type="text" id="fullName" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" required>
+                </div>
+                <button id="start-game-btn" type="submit" class="w-full bg-[#F5C45E] text-slate-800 font-bold py-3 px-4 rounded-lg hover:bg-[#E4B351] focus:outline-none focus:ring-4 focus:ring-yellow-400 transition-all duration-300 transform hover:scale-105 disabled:bg-slate-400 disabled:text-white disabled:cursor-not-allowed disabled:hover:scale-100" disabled>Bắt Đầu Chơi</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Khu vực trò chơi -->
+    <div id="game-area" class="container mx-auto p-4 md:p-8 hidden opacity-0 transition-opacity duration-500">
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-slate-800 mb-6">Sliding Puzzle Challenge</h1>
+        <div class="flex flex-col md:flex-row gap-8 justify-center items-start">
+            <!-- Hình ảnh mẫu -->
+            <div class="w-full md:w-1/3 text-center">
+                <h3 class="text-xl font-semibold text-slate-700 mb-4">Hình Ảnh Mẫu</h3>
+                <img id="sample-image" src="https://i.postimg.cc/QNpv1Scw/gia-tri-cot-loi-Toan-Phat.png" alt="Hình Mẫu" class="rounded-lg shadow-lg mx-auto w-full max-w-sm">
+                 <div id="player-info" class="mt-4 bg-white p-4 rounded-lg shadow-md text-left">
+                      <p class="text-slate-800"><strong class="font-semibold">Người chơi:</strong> <span id="display-fullName"></span></p>
+                      <p class="text-slate-800"><strong class="font-semibold">Bộ phận:</strong> <span id="display-department"></span></p>
+                 </div>
+            </div>
+
+            <!-- Khu vực Puzzle -->
+            <div class="w-full md:w-auto flex flex-col items-center">
+                 <div id="puzzle-wrapper" class="relative">
+                     <div id="puzzle-container" class="w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] md:w-[450px] md:h-[450px] rounded-lg overflow-hidden">
+                         <!-- Các mảnh ghép sẽ được tạo bằng JS -->
+                     </div>
+                 </div>
+                 <button id="complete-btn" class="mt-6 bg-[#0D1164] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#1F298F] focus:outline-none focus:ring-4 focus:ring-blue-400 transition-all duration-300 transform hover:scale-105 text-lg">Hoàn Thành</button>
+                  <div id="message-box" class="mt-4 text-red-600 font-semibold h-6"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Màn hình chúc mừng -->
+    <div id="win-screen" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-500">
+         <div class="relative w-full h-full overflow-hidden">
+             <!-- Confetti container -->
+             <div id="confetti-container" class="absolute inset-0"></div>
+         </div>
+        <div class="bg-white text-center p-10 rounded-2xl shadow-2xl transform scale-75 transition-transform duration-500 relative z-10">
+            <i class="fas fa-trophy text-yellow-400 text-7xl mb-4"></i>
+            <i class="fas fa-medal text-orange-500 text-6xl mb-4 ml-4"></i>
+            <h2 class="text-4xl font-extrabold text-slate-800 mb-4">Tuyệt vời!</h2>
+            <p class="text-xl text-slate-600">Chúc mừng bạn đã chiến thắng trò chơi!</p>
+             <button id="play-again-btn" class="mt-8 bg-[#F5C45E] text-slate-800 font-bold py-3 px-8 rounded-lg hover:bg-[#E4B351] focus:outline-none focus:ring-4 focus:ring-yellow-400 transition-all duration-300 transform hover:scale-105">Chơi Lại</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const instructionsScreen = document.getElementById('instructions-screen');
+            const userInfoModal = document.getElementById('user-info-modal');
+            
+            const nextToInstructionsBtn = document.getElementById('next-to-instructions');
+            const nextToUserInfoBtn = document.getElementById('next-to-user-info');
+            
+            const userInfoBox = document.getElementById('user-info-box');
+            const userInfoForm = document.getElementById('user-info-form');
+            const gameArea = document.getElementById('game-area');
+            const puzzleContainer = document.getElementById('puzzle-container');
+            const sampleImage = document.getElementById('sample-image');
+            const completeBtn = document.getElementById('complete-btn');
+            const messageBox = document.getElementById('message-box');
+            const winScreen = document.getElementById('win-screen');
+            const playAgainBtn = document.getElementById('play-again-btn');
+            const displayFullName = document.getElementById('display-fullName');
+            const displayDepartment = document.getElementById('display-department');
+            
+            // --- Cải tiến ô nhập liệu Bộ phận ---
+            const departmentInput = document.getElementById('department');
+            const departmentSuggestions = document.getElementById('department-suggestions');
+            const startGameBtn = document.getElementById('start-game-btn');
+
+            const departmentList = [
+                'Ban giám đốc', 'Ban kiểm soát', 'Phòng kỹ thuật', 'Phòng QAQC', 'Bộ phận kho',
+                'Phòng kế hoạch sản xuất', 'Phòng vật tư', 'Phòng xuất nhập khẩu', 'Phòng kế toán tài chính',
+                'Phòng hành chính nhân sự', 'Phòng bán hàng nội', 'Phòng bán hàng xuất khẩu',
+                'Phòng phát triển hệ thống', 'Phòng HSE', 'Bộ phận bảo vệ', 'Bộ phận điện', 'Bộ phận cơ khí',
+                'Bộ phận lò nấu', 'Bộ phận ép phế', 'Bộ phận phay - cán - kéo', 'Bộ phận kéo thành phẩm',
+                'Bộ phận kéo ống thẳng', 'Bộ phận luồn xốp', 'Bộ phận tang gỗ', 'Bộ phận PC - LWC',
+                'Bộ phận lò ủ', 'Bộ phận đóng gói', 'Bộ phận lái xe', 'Bộ phận tạp vụ', 'Bộ phận bếp'
+            ];
+
+            function validateDepartment() {
+                const isValid = departmentList.includes(departmentInput.value.trim());
+                startGameBtn.disabled = !isValid;
+            }
+
+            departmentInput.addEventListener('input', () => {
+                const inputText = departmentInput.value.toLowerCase().trim();
+                departmentSuggestions.innerHTML = '';
+
+                if (inputText.length > 0) {
+                    const filteredDepartments = departmentList.filter(dep => 
+                        dep.toLowerCase().includes(inputText)
+                    );
+                    
+                    if (filteredDepartments.length > 0) {
+                        filteredDepartments.forEach(dep => {
+                            const suggestionItem = document.createElement('div');
+                            suggestionItem.textContent = dep;
+                            suggestionItem.className = 'p-2 cursor-pointer suggestion-item';
+                            suggestionItem.addEventListener('click', () => {
+                                departmentInput.value = dep;
+                                departmentSuggestions.classList.add('hidden');
+                                departmentSuggestions.innerHTML = '';
+                                validateDepartment();
+                            });
+                            departmentSuggestions.appendChild(suggestionItem);
+                        });
+                        departmentSuggestions.classList.remove('hidden');
+                    } else {
+                        departmentSuggestions.classList.add('hidden');
+                    }
+                } else {
+                    departmentSuggestions.classList.add('hidden');
+                }
+                validateDepartment();
+            });
+            
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!departmentInput.contains(e.target) && !departmentSuggestions.contains(e.target)) {
+                    departmentSuggestions.classList.add('hidden');
+                }
+            });
+
+
+            const GRID_SIZE = 4;
+            const PIECE_COUNT = GRID_SIZE * GRID_SIZE;
+            const IMAGE_SRC = sampleImage.src;
+
+            let pieces = [];
+            let emptyIndex = PIECE_COUNT - 1;
+
+            // --- Logic chuyển đổi giao diện ---
+            
+            setTimeout(() => {
+                welcomeScreen.querySelector('.transform').style.transform = 'scale(1)';
+            }, 100);
+
+            nextToInstructionsBtn.addEventListener('click', () => {
+                welcomeScreen.classList.add('opacity-0');
+                setTimeout(() => {
+                    welcomeScreen.classList.add('hidden');
+                    instructionsScreen.classList.remove('hidden');
+                    setTimeout(() => {
+                        instructionsScreen.classList.remove('opacity-0');
+                        instructionsScreen.querySelector('.transform').style.transform = 'scale(1)';
+                    }, 50);
+                }, 300);
+            });
+            
+            nextToUserInfoBtn.addEventListener('click', () => {
+                instructionsScreen.classList.add('opacity-0');
+                 setTimeout(() => {
+                    instructionsScreen.classList.add('hidden');
+                    userInfoModal.classList.remove('hidden');
+                    setTimeout(() => {
+                        userInfoModal.classList.remove('opacity-0');
+                        userInfoBox.style.transform = 'scale(1)';
+                    }, 50);
+                }, 300);
+            });
+
+            userInfoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const fullName = document.getElementById('fullName').value;
+                const department = document.getElementById('department').value;
+                
+                if (!departmentList.includes(department.trim())) {
+                    // This is an extra check, though the button should be disabled anyway.
+                    return; 
+                }
+
+                displayFullName.textContent = fullName;
+                displayDepartment.textContent = department;
+
+                userInfoModal.classList.add('opacity-0');
+                userInfoModal.classList.add('pointer-events-none');
+                setTimeout(() => {
+                    userInfoModal.classList.add('hidden');
+                    gameArea.classList.remove('hidden');
+                    setTimeout(() => gameArea.classList.remove('opacity-0'), 50);
+                    startGame();
+                }, 300);
+            });
+            
+            function startGame() {
+                createPieces();
+                shufflePieces();
+                renderBoard();
+            }
+
+            function createPieces() {
+                pieces = [];
+                for (let i = 0; i < PIECE_COUNT; i++) {
+                    pieces.push(i);
+                }
+                emptyIndex = PIECE_COUNT - 1;
+            }
+
+            function shufflePieces() {
+                let shuffles = 200;
+                for (let i = 0; i < shuffles; i++) {
+                    const neighbors = getNeighbors(emptyIndex);
+                    const randomNeighborIndex = neighbors[Math.floor(Math.random() * neighbors.length)];
+                    swapPieces(emptyIndex, randomNeighborIndex);
+                    emptyIndex = randomNeighborIndex;
+                }
+                
+                let lastPieceIndex = pieces.indexOf(PIECE_COUNT - 1);
+                swapPieces(lastPieceIndex, emptyIndex);
+                emptyIndex = lastPieceIndex;
+            }
+
+            function renderBoard() {
+                puzzleContainer.innerHTML = '';
+                const positionStep = 100 / (GRID_SIZE - 1);
+                
+                for (let i = 0; i < PIECE_COUNT; i++) {
+                    const pieceValue = pieces[i];
+                    const pieceElement = document.createElement('div');
+                    
+                    if (pieceValue === PIECE_COUNT - 1) {
+                        pieceElement.className = 'puzzle-piece empty-piece';
+                    } else {
+                        pieceElement.className = 'puzzle-piece';
+                        pieceElement.style.backgroundImage = `url(${IMAGE_SRC})`;
+                        
+                        const col = pieceValue % GRID_SIZE;
+                        const row = Math.floor(pieceValue / GRID_SIZE);
+                        
+                        pieceElement.style.backgroundPosition = `${col * positionStep}% ${row * positionStep}%`;
+                        pieceElement.dataset.index = i;
+                    }
+                    puzzleContainer.appendChild(pieceElement);
+                }
+            }
+
+            puzzleContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('puzzle-piece') && !e.target.classList.contains('empty-piece')) {
+                    const clickedIndex = parseInt(e.target.dataset.index);
+                    const neighbors = getNeighbors(emptyIndex);
+
+                    if (neighbors.includes(clickedIndex)) {
+                        swapPieces(clickedIndex, emptyIndex);
+                        emptyIndex = clickedIndex;
+                        renderBoard();
+                    }
+                }
+            });
+
+            function getNeighbors(index) {
+                const neighbors = [];
+                const row = Math.floor(index / GRID_SIZE);
+                const col = index % GRID_SIZE;
+
+                if (row > 0) neighbors.push(index - GRID_SIZE);
+                if (row < GRID_SIZE - 1) neighbors.push(index + GRID_SIZE);
+                if (col > 0) neighbors.push(index - 1);
+                if (col < GRID_SIZE - 1) neighbors.push(index + 1);
+                
+                return neighbors;
+            }
+
+            function swapPieces(index1, index2) {
+                [pieces[index1], pieces[index2]] = [pieces[index2], pieces[index1]];
+            }
+
+            completeBtn.addEventListener('click', () => {
+                if (isSolved()) {
+                    const completionTime = new Date();
+                    const data = {
+                        timestamp: completionTime.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }),
+                        fullName: displayFullName.textContent,
+                        department: displayDepartment.textContent,
+                    };
+                    sendDataToGoogleSheet(data);
+                    showWinScreen();
+                } else {
+                    messageBox.textContent = 'Chưa đúng. Cố gắng lên bạn nhé!';
+                    setTimeout(() => { messageBox.textContent = ''; }, 2000);
+                }
+            });
+
+            function sendDataToGoogleSheet(data) {
+                const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZaPuw7kUToZnflTqRsDJLYBZiUeSXOM0ZkMFYiAJA4elyxcjyFiNZKeK_YY1nWDxS/exec";
+                
+                const formData = new FormData();
+                formData.append('timestamp', data.timestamp);
+                formData.append('fullName', data.fullName);
+                formData.append('department', data.department);
+
+                fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' 
+                })
+                .then(response => {
+                    console.log('Gửi dữ liệu thành công!');
+                })
+                .catch(error => {
+                    console.error('Lỗi khi gửi dữ liệu:', error.message);
+                });
+            }
+
+            function isSolved() {
+                for (let i = 0; i < PIECE_COUNT; i++) {
+                    if (pieces[i] !== i) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            function showWinScreen() {
+                 winScreen.classList.remove('hidden');
+                 createConfetti();
+                 setTimeout(() => {
+                     winScreen.classList.remove('opacity-0');
+                     winScreen.querySelector('div.transform').classList.remove('scale-75');
+                     winScreen.querySelector('div.transform').classList.add('scale-100');
+                 }, 50);
+            }
+            
+            playAgainBtn.addEventListener('click', () => {
+                winScreen.classList.add('opacity-0');
+                 winScreen.querySelector('div.transform').classList.add('scale-75');
+                 setTimeout(() => {
+                     winScreen.classList.add('hidden');
+                     document.getElementById('confetti-container').innerHTML = '';
+                     startGame();
+                 }, 500);
+            });
+            
+            function createConfetti() {
+                const container = document.getElementById('confetti-container');
+                container.innerHTML = '';
+                const colors = ['yellow', 'blue', 'green', 'pink'];
+                for (let i = 0; i < 100; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = `confetti ${colors[Math.floor(Math.random() * colors.length)]}`;
+                    confetti.style.left = `${Math.random() * 100}vw`;
+                    confetti.style.animationDelay = `${Math.random() * 5}s`;
+                    confetti.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    container.appendChild(confetti);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
