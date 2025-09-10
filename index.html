@@ -10,7 +10,6 @@
     <style>
         body {
             font-family: 'Be Vietnam Pro', sans-serif;
-            /* Thay đổi overflow: hidden thành overflow-y: auto để cho phép cuộn dọc khi cần thiết trên màn hình nhỏ */
             overflow-y: auto;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
@@ -67,13 +66,11 @@
         .confetti.green { background-color: #0f0; }
         .confetti.pink { background-color: #f0f; }
         
-        /* For suggestion dropdown */
         .suggestion-item:hover {
             background-color: #f0f0f0;
         }
     </style>
 </head>
-<!-- CẢI TIẾN: Thêm padding p-4 cho cả chiều dọc và ngang -->
 <body class="bg-slate-100 flex justify-center min-h-screen p-4">
 
     <!-- Giao diện 1: Chào mừng -->
@@ -117,16 +114,17 @@
     </div>
 
     <!-- Khu vực trò chơi -->
-    <!-- CẢI TIẾN: Bỏ class 'container' để layout bên trong có thể dùng max-width lớn hơn -->
     <div id="game-area" class="w-full px-4 sm:px-8 hidden opacity-0 transition-opacity duration-500">
-        <!-- CẢI TIẾN: Chuyển sang layout GRID 2 cột trên desktop, có max-width để không bị dãn quá rộng -->
         <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-start">
             <!-- Cột 1: Hình ảnh mẫu -->
             <div class="w-full flex flex-col items-center text-center">
-                <h3 class="text-xl font-semibold text-slate-700 mb-4">Hình Ảnh Mẫu</h3>
-                <!-- CẢI TIẾN: Tăng max-width của ảnh mẫu trên desktop -->
+                <div class="flex items-center justify-center gap-4 mb-4">
+                    <h3 class="text-xl font-semibold text-slate-700">Hình Ảnh Mẫu</h3>
+                    <button id="tech-btn" title="Chế độ kỹ thuật" class="bg-slate-700 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg hover:bg-slate-800 transition transform hover:scale-110">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                </div>
                 <img id="sample-image" src="https://i.postimg.cc/QNpv1Scw/gia-tri-cot-loi-Toan-Phat.png" alt="Hình Mẫu" class="rounded-lg shadow-lg mx-auto w-full max-w-md">
-                 <!-- CẢI TIẾN: Thêm max-width để đồng bộ với ảnh -->
                  <div id="player-info" class="mt-4 bg-white p-4 rounded-lg shadow-md text-left w-full max-w-md">
                      <p class="text-slate-800"><strong class="font-semibold">Người chơi:</strong> <span id="display-fullName"></span></p>
                      <p class="text-slate-800"><strong class="font-semibold">Bộ phận:</strong> <span id="display-department"></span></p>
@@ -136,13 +134,14 @@
             <!-- Cột 2: Khu vực Puzzle -->
             <div class="w-full flex flex-col items-center">
                  <div id="puzzle-wrapper" class="relative w-full flex justify-center">
-                      <!-- Kích thước puzzle được giữ nguyên, nó sẽ tự lấp đầy vào cột grid mới -->
                       <div id="puzzle-container" class="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg aspect-square rounded-lg overflow-hidden">
                            <!-- Các mảnh ghép sẽ được tạo bằng JS -->
                       </div>
                  </div>
-                 <button id="complete-btn" class="mt-6 bg-[#0D1164] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#1F298F] focus:outline-none focus:ring-4 focus:ring-blue-400 transition-all duration-300 transform hover:scale-105 text-lg">Hoàn Thành</button>
-                  <div id="message-box" class="mt-4 text-red-600 font-semibold h-6"></div>
+                 <div class="flex items-center justify-center gap-4 mt-6">
+                    <button id="complete-btn" class="bg-[#0D1164] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#1F298F] focus:outline-none focus:ring-4 focus:ring-blue-400 transition-all duration-300 transform hover:scale-105 text-lg">Hoàn Thành</button>
+                 </div>
+                 <div id="message-box" class="mt-4 font-semibold h-6"></div>
             </div>
         </div>
     </div>
@@ -150,7 +149,6 @@
     <!-- Màn hình chúc mừng -->
     <div id="win-screen" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-500">
          <div class="relative w-full h-full overflow-hidden">
-             <!-- Confetti container -->
              <div id="confetti-container" class="absolute inset-0"></div>
          </div>
         <div class="bg-white text-center p-10 rounded-2xl shadow-2xl transform scale-75 transition-transform duration-500 relative z-10">
@@ -158,9 +156,25 @@
             <i class="fas fa-medal text-orange-500 text-6xl mb-4 ml-4"></i>
             <h2 class="text-4xl font-extrabold text-slate-800 mb-4">Tuyệt vời!</h2>
             <p class="text-xl text-slate-600">Chúc mừng bạn đã chiến thắng trò chơi!</p>
-             <button id="play-again-btn" class="mt-8 bg-[#F5C45E] text-slate-800 font-bold py-3 px-8 rounded-lg hover:bg-[#E4B351] focus:outline-none focus:ring-4 focus:ring-yellow-400 transition-all duration-300 transform hover:scale-105">Chơi Lại</button>
+            <!-- Thêm mục hiển thị trạng thái gửi -->
+            <p id="submission-status" class="mt-4 text-slate-500 h-6"></p>
+            <button id="play-again-btn" class="mt-8 bg-[#F5C45E] text-slate-800 font-bold py-3 px-8 rounded-lg hover:bg-[#E4B351] focus:outline-none focus:ring-4 focus:ring-yellow-400 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">Chơi Lại</button>
         </div>
     </div>
+
+    <!-- MODAL KỸ THUẬT MỚI -->
+    <div id="tech-modal" class="hidden opacity-0 fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm text-center transform scale-95 transition-transform duration-300">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Tiến vào giao diện xử lý kỹ thuật</h2>
+            <input type="password" id="tech-password" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition mb-4" placeholder="Nhập mật khẩu...">
+            <p id="tech-error" class="text-red-500 h-6 mb-2"></p>
+            <div class="flex gap-4">
+                <button id="tech-exit-btn" class="w-full bg-slate-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-600 transition">Thoát ra</button>
+                <button id="tech-submit-btn" class="w-full bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition">Gửi</button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -168,10 +182,8 @@
             const welcomeScreen = document.getElementById('welcome-screen');
             const instructionsScreen = document.getElementById('instructions-screen');
             const userInfoModal = document.getElementById('user-info-modal');
-            
             const nextToInstructionsBtn = document.getElementById('next-to-instructions');
             const nextToUserInfoBtn = document.getElementById('next-to-user-info');
-            
             const userInfoBox = document.getElementById('user-info-box');
             const userInfoForm = document.getElementById('user-info-form');
             const gameArea = document.getElementById('game-area');
@@ -183,11 +195,17 @@
             const playAgainBtn = document.getElementById('play-again-btn');
             const displayFullName = document.getElementById('display-fullName');
             const displayDepartment = document.getElementById('display-department');
-            
-            // --- Cải tiến ô nhập liệu Bộ phận ---
             const departmentInput = document.getElementById('department');
             const departmentSuggestions = document.getElementById('department-suggestions');
             const startGameBtn = document.getElementById('start-game-btn');
+            const submissionStatusEl = document.getElementById('submission-status');
+
+            const techBtn = document.getElementById('tech-btn');
+            const techModal = document.getElementById('tech-modal');
+            const techPasswordInput = document.getElementById('tech-password');
+            const techError = document.getElementById('tech-error');
+            const techSubmitBtn = document.getElementById('tech-submit-btn');
+            const techExitBtn = document.getElementById('tech-exit-btn');
 
             const departmentList = [
                 'Ban giám đốc', 'Ban kiểm soát', 'Phòng kỹ thuật', 'Phòng QAQC', 'Bộ phận kho',
@@ -236,13 +254,11 @@
                 validateDepartment();
             });
             
-            // Hide suggestions when clicking outside
             document.addEventListener('click', (e) => {
                 if (!departmentInput.contains(e.target) && !departmentSuggestions.contains(e.target)) {
                     departmentSuggestions.classList.add('hidden');
                 }
             });
-
 
             const GRID_SIZE = 4;
             const PIECE_COUNT = GRID_SIZE * GRID_SIZE;
@@ -251,8 +267,6 @@
             let pieces = [];
             let emptyIndex = PIECE_COUNT - 1;
 
-            // --- Logic chuyển đổi giao diện ---
-            
             setTimeout(() => {
                 welcomeScreen.querySelector('.transform').style.transform = 'scale(1)';
             }, 100);
@@ -286,10 +300,7 @@
                 const fullName = document.getElementById('fullName').value;
                 const department = document.getElementById('department').value;
                 
-                if (!departmentList.includes(department.trim())) {
-                    // This is an extra check, though the button should be disabled anyway.
-                    return; 
-                }
+                if (!departmentList.includes(department.trim())) { return; }
 
                 displayFullName.textContent = fullName;
                 displayDepartment.textContent = department;
@@ -345,10 +356,8 @@
                     } else {
                         pieceElement.className = 'puzzle-piece';
                         pieceElement.style.backgroundImage = `url(${IMAGE_SRC})`;
-                        
                         const col = pieceValue % GRID_SIZE;
                         const row = Math.floor(pieceValue / GRID_SIZE);
-                        
                         pieceElement.style.backgroundPosition = `${col * positionStep}% ${row * positionStep}%`;
                         pieceElement.dataset.index = i;
                     }
@@ -360,7 +369,6 @@
                 if (e.target.classList.contains('puzzle-piece') && !e.target.classList.contains('empty-piece')) {
                     const clickedIndex = parseInt(e.target.dataset.index);
                     const neighbors = getNeighbors(emptyIndex);
-
                     if (neighbors.includes(clickedIndex)) {
                         swapPieces(clickedIndex, emptyIndex);
                         emptyIndex = clickedIndex;
@@ -373,12 +381,10 @@
                 const neighbors = [];
                 const row = Math.floor(index / GRID_SIZE);
                 const col = index % GRID_SIZE;
-
                 if (row > 0) neighbors.push(index - GRID_SIZE);
                 if (row < GRID_SIZE - 1) neighbors.push(index + GRID_SIZE);
                 if (col > 0) neighbors.push(index - 1);
                 if (col < GRID_SIZE - 1) neighbors.push(index + 1);
-                
                 return neighbors;
             }
 
@@ -394,10 +400,11 @@
                         fullName: displayFullName.textContent,
                         department: displayDepartment.textContent,
                     };
-                    sendDataToGoogleSheet(data);
-                    showWinScreen();
+                    showWinScreen(); // Hiển thị màn hình thắng trước
+                    sendDataToGoogleSheet(data); // Sau đó gửi dữ liệu
                 } else {
                     messageBox.textContent = 'Chưa đúng. Cố gắng lên bạn nhé!';
+                    messageBox.classList.add('text-red-600');
                     setTimeout(() => { messageBox.textContent = ''; }, 2000);
                 }
             });
@@ -405,47 +412,51 @@
             function sendDataToGoogleSheet(data) {
                 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZaPuw7kUToZnflTqRsDJLYBZiUeSXOM0ZkMFYiAJA4elyxcjyFiNZKeK_YY1nWDxS/exec";
                 
-                const formData = new FormData();
-                // CẢI TIẾN: Đổi tên các trường dữ liệu để khớp với Google Sheet (thường là tiêu đề cột)
-                formData.append('Timestamp', data.timestamp);
-                formData.append('Họ và Tên', data.fullName);
-                formData.append('Bộ phận', data.department);
+                submissionStatusEl.textContent = "Đang gửi kết quả...";
+                submissionStatusEl.className = 'mt-4 text-slate-500 h-6'; // Reset classes
+                playAgainBtn.disabled = true;
 
-                // CẢI TIẾN: Bỏ 'mode: no-cors' và thêm xử lý lỗi chi tiết
-                fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData,
-                })
+                const formData = new FormData();
+                formData.append('timestamp', data.timestamp);
+                formData.append('department', data.department);
+                formData.append('fullName', data.fullName);
+
+                fetch(SCRIPT_URL, { method: 'POST', body: formData })
                 .then(response => {
-                    // response.ok sẽ là true nếu status code là 200-299
-                    if (response.ok) {
-                        // Thường thì Google Script sẽ trả về một chuỗi hoặc JSON
-                        return response.text(); 
+                    if (!response.ok) {
+                        throw new Error(`Lỗi mạng: ${response.statusText}`);
                     }
-                    // Nếu không, ném ra lỗi để .catch() có thể bắt được
-                    throw new Error(`Lỗi mạng: ${response.statusText}`);
+                    return response.json(); // Chuyển đổi phản hồi sang JSON
                 })
                 .then(data => {
-                    console.log('Gửi dữ liệu thành công!', data);
-                    // Bạn có thể thêm một thông báo cho người dùng ở đây nếu cần
+                    if (data.result === 'success') {
+                        submissionStatusEl.textContent = "Đã gửi kết quả thành công!";
+                        submissionStatusEl.classList.remove('text-slate-500', 'text-red-600');
+                        submissionStatusEl.classList.add('text-green-600');
+                    } else {
+                        throw new Error(data.error || 'Lỗi không xác định từ Google Script.');
+                    }
                 })
                 .catch(error => {
                     console.error('Lỗi khi gửi dữ liệu:', error);
-                    // Hiển thị lỗi cho người dùng hoặc trong messageBox
-                    messageBox.textContent = 'Gửi kết quả thất bại. Vui lòng thử lại.';
+                    submissionStatusEl.textContent = `Gửi thất bại: ${error.message}`;
+                    submissionStatusEl.classList.remove('text-slate-500', 'text-green-600');
+                    submissionStatusEl.classList.add('text-red-600');
+                })
+                .finally(() => {
+                    playAgainBtn.disabled = false; // Bật lại nút sau khi hoàn tất
                 });
             }
 
             function isSolved() {
                 for (let i = 0; i < PIECE_COUNT; i++) {
-                    if (pieces[i] !== i) {
-                        return false;
-                    }
+                    if (pieces[i] !== i) return false;
                 }
                 return true;
             }
             
             function showWinScreen() {
+                 submissionStatusEl.textContent = ''; // Xóa trạng thái cũ khi bắt đầu
                  winScreen.classList.remove('hidden');
                  createConfetti();
                  setTimeout(() => {
@@ -461,9 +472,7 @@
             playAgainBtn.addEventListener('click', () => {
                 winScreen.classList.add('opacity-0');
                 const winBox = winScreen.querySelector('.bg-white');
-                if (winBox) {
-                    winBox.classList.add('scale-75');
-                }
+                if (winBox) { winBox.classList.add('scale-75'); }
                  setTimeout(() => {
                      winScreen.classList.add('hidden');
                      document.getElementById('confetti-container').innerHTML = '';
@@ -484,6 +493,48 @@
                     container.appendChild(confetti);
                 }
             }
+
+            const TECH_PASSWORD = 'RedFox@2025';
+
+            function openTechModal() {
+                techPasswordInput.value = '';
+                techError.textContent = '';
+                techModal.classList.remove('hidden');
+                setTimeout(() => {
+                    techModal.classList.remove('opacity-0');
+                    techModal.querySelector('.transform').style.transform = 'scale(1)';
+                }, 10);
+            }
+
+            function closeTechModal() {
+                techModal.querySelector('.transform').style.transform = 'scale(0.95)';
+                techModal.classList.add('opacity-0');
+                setTimeout(() => techModal.classList.add('hidden'), 300);
+            }
+
+            function solvePuzzleForTest() {
+                for (let i = 0; i < PIECE_COUNT; i++) {
+                    pieces[i] = i;
+                }
+                emptyIndex = PIECE_COUNT - 1; 
+                renderBoard();
+                messageBox.textContent = 'Puzzle đã được giải. Hãy nhấn "Hoàn thành".';
+                messageBox.classList.remove('text-red-600');
+                messageBox.classList.add('text-green-600');
+            }
+
+            techBtn.addEventListener('click', openTechModal);
+            techExitBtn.addEventListener('click', closeTechModal);
+
+            techSubmitBtn.addEventListener('click', () => {
+                if (techPasswordInput.value === TECH_PASSWORD) {
+                    closeTechModal();
+                    solvePuzzleForTest();
+                } else {
+                    techError.textContent = 'Mật khẩu không đúng.';
+                    techPasswordInput.value = '';
+                }
+            });
         });
     </script>
 </body>
