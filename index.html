@@ -406,20 +406,33 @@
                 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxZaPuw7kUToZnflTqRsDJLYBZiUeSXOM0ZkMFYiAJA4elyxcjyFiNZKeK_YY1nWDxS/exec";
                 
                 const formData = new FormData();
-                formData.append('timestamp', data.timestamp);
-                formData.append('fullName', data.fullName);
-                formData.append('department', data.department);
+                // CẢI TIẾN: Đổi tên các trường dữ liệu để khớp với Google Sheet (thường là tiêu đề cột)
+                formData.append('Timestamp', data.timestamp);
+                formData.append('Họ và Tên', data.fullName);
+                formData.append('Bộ phận', data.department);
 
+                // CẢI TIẾN: Bỏ 'mode: no-cors' và thêm xử lý lỗi chi tiết
                 fetch(SCRIPT_URL, {
                     method: 'POST',
                     body: formData,
-                    mode: 'no-cors' 
                 })
                 .then(response => {
-                    console.log('Gửi dữ liệu thành công!');
+                    // response.ok sẽ là true nếu status code là 200-299
+                    if (response.ok) {
+                        // Thường thì Google Script sẽ trả về một chuỗi hoặc JSON
+                        return response.text(); 
+                    }
+                    // Nếu không, ném ra lỗi để .catch() có thể bắt được
+                    throw new Error(`Lỗi mạng: ${response.statusText}`);
+                })
+                .then(data => {
+                    console.log('Gửi dữ liệu thành công!', data);
+                    // Bạn có thể thêm một thông báo cho người dùng ở đây nếu cần
                 })
                 .catch(error => {
-                    console.error('Lỗi khi gửi dữ liệu:', error.message);
+                    console.error('Lỗi khi gửi dữ liệu:', error);
+                    // Hiển thị lỗi cho người dùng hoặc trong messageBox
+                    messageBox.textContent = 'Gửi kết quả thất bại. Vui lòng thử lại.';
                 });
             }
 
