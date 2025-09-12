@@ -126,17 +126,17 @@
                 </div>
                 <img id="sample-image" src="https://i.postimg.cc/QNpv1Scw/gia-tri-cot-loi-Toan-Phat.png" alt="Hình Mẫu" class="rounded-lg shadow-lg mx-auto w-full max-w-md">
                  <div id="player-info" class="mt-4 bg-white p-4 rounded-lg shadow-md text-left w-full max-w-md">
-                     <p class="text-slate-800"><strong class="font-semibold">Người chơi:</strong> <span id="display-fullName"></span></p>
-                     <p class="text-slate-800"><strong class="font-semibold">Bộ phận:</strong> <span id="display-department"></span></p>
+                      <p class="text-slate-800"><strong class="font-semibold">Người chơi:</strong> <span id="display-fullName"></span></p>
+                      <p class="text-slate-800"><strong class="font-semibold">Bộ phận:</strong> <span id="display-department"></span></p>
                  </div>
             </div>
 
             <!-- Cột 2: Khu vực Puzzle -->
             <div class="w-full flex flex-col items-center">
                  <div id="puzzle-wrapper" class="relative w-full flex justify-center">
-                      <div id="puzzle-container" class="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg aspect-square rounded-lg overflow-hidden">
-                           <!-- Các mảnh ghép sẽ được tạo bằng JS -->
-                      </div>
+                       <div id="puzzle-container" class="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg aspect-square rounded-lg overflow-hidden">
+                             <!-- Các mảnh ghép sẽ được tạo bằng JS -->
+                       </div>
                  </div>
                  <div class="flex items-center justify-center gap-4 mt-6">
                     <button id="complete-btn" class="bg-[#0D1164] text-white font-bold py-3 px-8 rounded-lg hover:bg-[#1F298F] focus:outline-none focus:ring-4 focus:ring-blue-400 transition-all duration-300 transform hover:scale-105 text-lg">Hoàn Thành</button>
@@ -149,7 +149,7 @@
     <!-- Màn hình chúc mừng -->
     <div id="win-screen" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden opacity-0 transition-opacity duration-500">
          <div class="relative w-full h-full overflow-hidden">
-             <div id="confetti-container" class="absolute inset-0"></div>
+               <div id="confetti-container" class="absolute inset-0"></div>
          </div>
         <div class="bg-white text-center p-10 rounded-2xl shadow-2xl transform scale-75 transition-transform duration-500 relative z-10">
             <i class="fas fa-trophy text-yellow-400 text-7xl mb-4"></i>
@@ -208,13 +208,11 @@
             const techExitBtn = document.getElementById('tech-exit-btn');
 
             const departmentList = [
-                'Ban giám đốc', 'Ban kiểm soát', 'Phòng kỹ thuật', 'Phòng QAQC', 'Bộ phận kho',
-                'Phòng kế hoạch sản xuất', 'Phòng vật tư', 'Phòng xuất nhập khẩu', 'Phòng kế toán tài chính',
-                'Phòng hành chính nhân sự', 'Phòng bán hàng nội', 'Phòng bán hàng xuất khẩu',
-                'Phòng phát triển hệ thống', 'Phòng HSE', 'Bộ phận bảo vệ', 'Bộ phận điện', 'Bộ phận cơ khí',
-                'Bộ phận lò nấu', 'Bộ phận ép phế', 'Bộ phận phay - cán - kéo', 'Bộ phận kéo thành phẩm',
-                'Bộ phận kéo ống thẳng', 'Bộ phận luồn xốp', 'Bộ phận tang gỗ', 'Bộ phận PC - LWC',
-                'Bộ phận lò ủ', 'Bộ phận đóng gói', 'Bộ phận lái xe', 'Bộ phận tạp vụ', 'Bộ phận bếp'
+                'Ban Giám Đốc', 'Ban kiểm soát', 'Marketing', 'HCNS', 'KHSX',
+                'HSE', 'Kế toán', 'Bán hàng nội', 'Bán hàng xuất khẩu', 'Xuất nhập khẩu',
+                'Vật tư', 'Kỹ thuật', 'Cơ khí', 'Điện', 'QAQC', 'Lò nấu',
+                'Ép phế', 'PCK', 'KOT', 'Luồn xốp', 'Tang gỗ', 'KTP', 'PCLWC',
+                'Phụ kiện Đồng', 'Lò ủ', 'Đóng gói', 'Kho', 'Bếp', 'Tạp vụ', 'Bảo vệ'
             ];
 
             function validateDepartment() {
@@ -460,12 +458,12 @@
                  winScreen.classList.remove('hidden');
                  createConfetti();
                  setTimeout(() => {
-                     winScreen.classList.remove('opacity-0');
-                     const winBox = winScreen.querySelector('.bg-white');
-                     if (winBox) {
-                        winBox.classList.remove('scale-75');
-                        winBox.classList.add('scale-100');
-                     }
+                       winScreen.classList.remove('opacity-0');
+                       const winBox = winScreen.querySelector('.bg-white');
+                       if (winBox) {
+                           winBox.classList.remove('scale-75');
+                           winBox.classList.add('scale-100');
+                       }
                  }, 50);
             }
             
@@ -474,9 +472,9 @@
                 const winBox = winScreen.querySelector('.bg-white');
                 if (winBox) { winBox.classList.add('scale-75'); }
                  setTimeout(() => {
-                     winScreen.classList.add('hidden');
-                     document.getElementById('confetti-container').innerHTML = '';
-                     startGame();
+                       winScreen.classList.add('hidden');
+                       document.getElementById('confetti-container').innerHTML = '';
+                       startGame();
                  }, 500);
             });
             
@@ -539,4 +537,3 @@
     </script>
 </body>
 </html>
-
